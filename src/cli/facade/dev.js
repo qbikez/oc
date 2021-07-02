@@ -24,6 +24,7 @@ module.exports = function(dependencies) {
     const componentsDir = opts.dirPath,
       port = opts.port || 3000,
       baseUrl = opts.baseUrl || `http://localhost:${port}/`,
+      filter = opts.filter,
       fallbackRegistryUrl = opts.fallbackRegistryUrl,
       hotReloading = _.isUndefined(opts.hotReloading)
         ? true
@@ -121,6 +122,10 @@ module.exports = function(dependencies) {
 
     logger.warn(cliMessages.SCANNING_COMPONENTS, true);
     local.getComponentsByDir(componentsDir, (err, components) => {
+      logger.log(`filter: ${filter}`);
+      const allComponents = components;
+      components =
+        (filter && components.filter(c => c.includes(filter))) || components;
       if (_.isEmpty(components)) {
         err = format(cliErrors.DEV_FAIL, cliErrors.COMPONENTS_NOT_FOUND);
         callback(err);
@@ -128,9 +133,11 @@ module.exports = function(dependencies) {
       }
 
       logger.ok('OK');
-      _.forEach(components, component =>
-        logger.log(colors.green('├── ') + component)
-      );
+      _.forEach(allComponents, component => {
+        if (filter && !component.includes(filter))
+          logger.log(colors.gray(`├── ${component}`));
+        else logger.log(colors.green('├── ') + component);
+      });
 
       handleDependencies({ components, logger }, (err, dependencies) => {
         if (err) {
@@ -168,7 +175,7 @@ module.exports = function(dependencies) {
                 prefix: opts.prefix || '',
                 dependencies: dependencies.modules,
                 discovery: true,
-                env: { name: 'local' },
+                env: { name: opts.env || 'local' },
                 fallbackRegistryUrl,
                 hotReloading,
                 liveReloadPort: liveReload.port,

@@ -55,6 +55,11 @@ module.exports = {
           boolean: false,
           description: 'Url prefix for registry server',
           default: ''
+        },
+        filter: {
+          boolean: false,
+          description: 'only run specific components',
+          default: ''
         }
       },
       usage: 'Usage: $0 dev <dirPath> [port] [baseUrl] [options]'
